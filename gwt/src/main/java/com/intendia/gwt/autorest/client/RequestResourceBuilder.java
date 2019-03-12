@@ -1,12 +1,5 @@
 package com.intendia.gwt.autorest.client;
 
-import static elemental2.core.Global.encodeURIComponent;
-import static java.util.Objects.requireNonNull;
-import static javax.ws.rs.core.HttpHeaders.ACCEPT;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
-
 import com.intendia.gwt.autorest.client.RequestResponseException.FailedStatusCodeException;
 import com.intendia.gwt.autorest.client.RequestResponseException.ResponseFormatException;
 import elemental2.core.Global;
@@ -16,6 +9,9 @@ import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import jsinterop.base.Js;
+
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,8 +19,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import javax.annotation.Nullable;
-import jsinterop.base.Js;
+
+import static elemental2.core.Global.encodeURIComponent;
+import static java.util.Objects.requireNonNull;
+import static javax.ws.rs.core.HttpHeaders.ACCEPT;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 
 @SuppressWarnings("GwtInconsistentSerializableClass")
 public class RequestResourceBuilder extends CollectorResourceVisitor {
@@ -82,7 +83,7 @@ public class RequestResourceBuilder extends CollectorResourceVisitor {
         }
     }
 
-    public Single<XMLHttpRequest> request() {
+    private Single<XMLHttpRequest> request() {
         return Single.<XMLHttpRequest>create(em -> {
             XMLHttpRequest xhr = requestFactory.apply(this);
             Map<String, String> headers = new HashMap<>();
