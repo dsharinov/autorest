@@ -5,11 +5,12 @@ import com.intendia.gwt.autorest.client.ResourceVisitor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -24,18 +25,23 @@ import javax.ws.rs.QueryParam;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.auto.common.MoreTypes.asElement;
 import static java.util.Optional.ofNullable;
-import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.ws.rs.HttpMethod.GET;
 
 /**
  * @author DimaS
  */
 public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
+    private static final String CALLBACK = "callback";
+    private static final String ON_ERROR = "onError";
+
     CallbackGwtBuilder(ProcessingEnvironment processingEnv) {
         super(processingEnv);
     }
@@ -46,9 +52,21 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
                                       ClassName rsName, ClassName modelName,
                                       TypeSpec.Builder modelTypeBuilder,
                                       Function<String, String> checkMethodName) {
+
+        TypeVariableName typeVariable = TypeVariableName.get("T");
+        modelTypeBuilder.addTypeVariable(typeVariable);
+
+        TypeName callbackType = ParameterizedTypeName.get(ClassName.get(Consumer.class), typeVariable);
+        TypeName errorHandlerType = ParameterizedTypeName.get(ClassName.get(Consumer.class), TypeName.get(ErrorInfo.class));
+        modelTypeBuilder
+                .addField(callbackType, CALLBACK, PRIVATE, FINAL)
+                .addField(errorHandlerType, ON_ERROR, PRIVATE, FINAL)
+                .build();
+
         modelTypeBuilder.addMethod(MethodSpec.constructorBuilder()
-                .addAnnotation(Inject.class)
-                .addModifiers(PUBLIC)
+                //.addAnnotation(Inject.class)
+                .addModifiers(PRIVATE)
+                .addParameter(TypeName.get(ResourceVisitor.Supplier.class), "parent")
                 .addParameter(TypeName.get(ResourceVisitor.Supplier.class), "parent")
                 .addStatement("super(() -> $L.get().path($S))",
                         "parent", rsPath)
