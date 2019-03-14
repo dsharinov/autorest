@@ -1,6 +1,7 @@
 package com.intendia.gwt.autorest.client;
 
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
 /** Visit each resource gathering the metadata and end up calling {@link #as(Class, Class)}. */
 public interface ResourceVisitor {
@@ -31,6 +32,8 @@ public interface ResourceVisitor {
 
     /** Wrap the current resource state into a {@code container}. */
     <T> T as(Class<? super T> container, Class<?> type);
+
+    <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError);
 
     interface Supplier {
         ResourceVisitor get();

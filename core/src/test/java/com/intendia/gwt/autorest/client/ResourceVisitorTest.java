@@ -1,10 +1,12 @@
 package com.intendia.gwt.autorest.client;
 
+import org.junit.Test;
+
+import java.util.function.Consumer;
+
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-
-import org.junit.Test;
 
 public class ResourceVisitorTest {
 
@@ -31,5 +33,10 @@ public class ResourceVisitorTest {
     private static class MyCollectorResourceVisitor extends CollectorResourceVisitor {
         @Override protected String encodeComponent(String str) { return str; }
         @Override public <T> T as(Class<? super T> container, Class<?> type) { return null; }
+
+        @Override
+        public <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError) {
+        }
+
     }
 }

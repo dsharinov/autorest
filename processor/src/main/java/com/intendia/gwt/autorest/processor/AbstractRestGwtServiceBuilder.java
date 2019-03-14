@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.intendia.gwt.autorest.client.RestServiceModel;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
@@ -29,14 +30,17 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.auto.common.MoreTypes.asElement;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 import static javax.lang.model.element.Modifier.STATIC;
@@ -68,7 +72,7 @@ abstract class AbstractRestGwtServiceBuilder {
         ClassName rsName = ClassName.get(restService);
         log("rest service interface: " + rsName);
 
-        ClassName modelName = ClassName.get(rsName.packageName(), rsName.simpleName() + "_RestServiceModel");
+        ClassName modelName = ClassName.get(rsName.packageName(), rsName.simpleName() + suffix());
         log("rest service model: " + modelName);
 
         TypeSpec.Builder modelTypeBuilder = TypeSpec.classBuilder(modelName.simpleName())
@@ -91,6 +95,8 @@ abstract class AbstractRestGwtServiceBuilder {
                 .build()
                 .writeTo(filer);
     }
+
+    abstract protected String suffix();
 
     protected abstract void doBuildRestService(TypeElement restService, String rsPath,
                                                String[] produces, String[] consumes,
@@ -145,5 +151,44 @@ abstract class AbstractRestGwtServiceBuilder {
                 .addStatement("throw new $T(\"$L\")", UnsupportedOperationException.class, methodName)
                 .build()));
         return incompatible.isPresent();
+    }
+
+    protected void prepareCall(String[] produces, String[] consumes, Function<String, String> checkMethodName,
+                               ExecutableElement method, CodeBlock.Builder builder) {
+        // method type
+        builder.add("method($L)", checkMethodName.apply(method.getAnnotationMirrors().stream()
+                .map(a -> asElement(a.getAnnotationType()).getAnnotation(HttpMethod.class))
+                .filter(Objects::nonNull).map(HttpMethod::value).findFirst().orElse(GET)));
+        // resolve paths
+        builder.add("\n.path($L)", Arrays
+                .stream(ofNullable(method.getAnnotation(Path.class)).map(Path::value).orElse("").split("/"))
+                .filter(s -> !s.isEmpty()).map(path -> !path.startsWith("{") ? "\"" + path + "\"" : method
+                        .getParameters().stream()
+                        .filter(a -> ofNullable(a.getAnnotation(PathParam.class)).map(PathParam::value)
+                                .map(v -> path.equals("{" + v + "}")).orElse(false))
+                        .findFirst().map(VariableElement::getSimpleName).map(Object::toString)
+                        // next comment will produce a compilation error so the user get notified
+                        .orElse("/* path param " + path + " does not match any argument! */"))
+                .collect(Collectors.joining(", ")));
+        // produces
+        builder.add(".produces($L)", Arrays
+                .stream(ofNullable(method.getAnnotation(Produces.class)).map(Produces::value).orElse(produces))
+                .map(str -> "\"" + str + "\"").collect(Collectors.joining(", ")));
+        // consumes
+        builder.add(".consumes($L)", Arrays
+                .stream(ofNullable(method.getAnnotation(Consumes.class)).map(Consumes::value).orElse(consumes))
+                .map(str -> "\"" + str + "\"").collect(Collectors.joining(", ")));
+        // query params
+        method.getParameters().stream().filter(p -> p.getAnnotation(QueryParam.class) != null).forEach(p ->
+                builder.add(".param($S, $L)", p.getAnnotation(QueryParam.class).value(), p.getSimpleName()));
+        // header params
+        method.getParameters().stream().filter(p -> p.getAnnotation(HeaderParam.class) != null).forEach(p ->
+                builder.add(".header($S, $L)", p.getAnnotation(HeaderParam.class).value(), p.getSimpleName()));
+        // form params
+        method.getParameters().stream().filter(p -> p.getAnnotation(FormParam.class) != null).forEach(p ->
+                builder.add(".form($S, $L)", p.getAnnotation(FormParam.class).value(), p.getSimpleName()));
+        // data
+        method.getParameters().stream().filter(p -> !isParam(p)).findFirst()
+                .ifPresent(data -> builder.add(".data($L)", data.getSimpleName()));
     }
 }

@@ -15,6 +15,7 @@ import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class JreResourceBuilder extends CollectorResourceVisitor {
@@ -42,6 +43,11 @@ public class JreResourceBuilder extends CollectorResourceVisitor {
 
     @Override public <T> T as(Class<? super T> container, Class<?> type) {
         return json.fromJson(request(), container, type);
+    }
+
+    @Override
+    public <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError) {
+        throw new UnsupportedOperationException("remoteCall not supported");
     }
 
     private Single<Reader> request() {
