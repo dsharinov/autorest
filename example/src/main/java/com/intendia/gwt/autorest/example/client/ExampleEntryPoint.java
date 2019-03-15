@@ -12,28 +12,29 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.web.bindery.event.shared.HandlerRegistration;
-import com.intendia.gwt.autorest.client.RequestResourceBuilder;
+import com.intendia.gwt.autorest.client.CallbackResourceBuilder;
 import com.intendia.gwt.autorest.client.ResourceVisitor;
-import com.intendia.gwt.autorest.example.client.ExampleService.Greeting;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.functions.Consumer;
 
 public class ExampleEntryPoint implements EntryPoint {
     private Consumer<Throwable> err = e -> GWT.log("exception: " + e, e);
+    private java.util.function.Consumer<Throwable> onError  = e -> GWT.log("exception: " + e, e);
 
     public void onModuleLoad() {
         TextBox name = append(new TextBox());
         HTML out = append(new HTML());
 
+        /*
         ResourceVisitor.Supplier getApi = () -> new RequestResourceBuilder().path(GWT.getModuleBaseURL(), "api");
-        ExampleService srv = new ExampleService_RestServiceModel(() -> getApi.get().header("auth", "ok"));
+        ExampleService exampleSrv = new ExampleService_RestServiceModel(() -> getApi.get().header("auth", "ok"));
 
         Observable.merge(valueChange(name), keyUp(name)).map(e -> name.getValue())
                 .switchMap(q -> {
                     Greeting greeting = new Greeting();
                     greeting.greeting = q;
-                    return srv.post(greeting)
+                    return exampleSrv.post(greeting)
                             .map(o -> o.greeting)
                             .onErrorReturn(Throwable::toString);
                 })
@@ -41,15 +42,24 @@ public class ExampleEntryPoint implements EntryPoint {
         name.setValue("ping", true);
 
         append("-- Static tests --");
-        srv.pingObservable().ignoreElements().subscribe(() -> append("observable pong"), err);
-        srv.pingMaybe().ignoreElement().subscribe(() -> append("maybe pong"), err);
-        srv.pingCompletable().subscribe(() -> append("completable pong"), err);
+        exampleSrv.pingObservable().ignoreElements().subscribe(() -> append("observable pong"), err);
+        exampleSrv.pingMaybe().ignoreElement().subscribe(() -> append("maybe pong"), err);
+        exampleSrv.pingCompletable().subscribe(() -> append("completable pong"), err);
 
-        srv.getFoo().subscribe(n -> append("observable.foo response: " + n.greeting), err);
-        srv.getFoo("FOO", "BAR", null).subscribe(n -> append("observable.foo response: " + n.greeting), err);
+        exampleSrv.getFoo().subscribe(n -> append("observable.foo response: " + n.greeting), err);
+        exampleSrv.getFoo("FOO", "BAR", null).subscribe(n -> append("observable.foo response: " + n.greeting), err);
+        */
+
+        ResourceVisitor.Supplier getRest = () -> new CallbackResourceBuilder().path(GWT.getModuleBaseURL(), "rest");
+        SessionResource loginSrv = new SessionResource_RestServiceProxy<SwSessionInfo>(
+                getRest, info -> append("User "+info.userName+" logged in"), onError);
+
+        loginSrv.login(AuthType.RES_AGENT, "user", "password");
     }
 
-    private static void append(String text) { append(new Label(text)); }
+    private static void append(String text) {
+        append(new Label(text));
+    }
 
     private static <T extends IsWidget> T append(T w) { RootPanel.get().add(w); return w; }
 

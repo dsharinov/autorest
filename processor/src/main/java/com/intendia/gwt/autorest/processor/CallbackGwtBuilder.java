@@ -19,6 +19,7 @@ import java.util.function.Function;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PUBLIC;
 
 /**
  * @author DimaS
@@ -50,7 +51,7 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
 
         modelTypeBuilder.addMethod(MethodSpec.constructorBuilder()
                 //.addAnnotation(Inject.class)
-                .addModifiers(PRIVATE)
+                .addModifiers(PUBLIC)
                 .addParameter(TypeName.get(ResourceVisitor.Supplier.class), "parent")
                 .addParameter(callbackType, ON_SUCCESS)
                 .addParameter(errorHandlerType, ON_ERROR)

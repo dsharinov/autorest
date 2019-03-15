@@ -1,45 +1,50 @@
 package com.intendia.gwt.autorest.example.client;
 
 import com.google.common.base.Objects;
+import jsinterop.annotations.JsOverlay;
+import jsinterop.annotations.JsPackage;
+import jsinterop.annotations.JsType;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  * Stores information about current Seaware session with ability to be read/written it as a cookie
  */
+@JsType(isNative = true, namespace = JsPackage.GLOBAL, name = "Object")
 public class SwSessionInfo implements Serializable {
 
-    private String authToken;
-    private AuthType userType;
-    private String userName;
-    private String displayName;
-    private String sessionId;
-    private Long clientId;
-    private Long agentId;
-    private Long agencyId;
-    private int inactivityTimeout; // in minutes
-    private String currency;
-    private String country;
-    private String officeCode;
-    private Set<Permission> permissions;
-    private Integer agentXDaysPayNow;
-    private String tnsName;
-    private String schemaName;
+    public String authToken;
+    public String userType;
+    public String userName;
+    public String displayName;
+    public String sessionId;
+    public Long clientId;
+    public Long agentId;
+    public Long agencyId;
+    public int inactivityTimeout; // in minutes
+    public String currency;
+    public String country;
+    public String officeCode;
+    //private Set<Permission> permissions;
+    public Integer agentXDaysPayNow;
+    public String tnsName;
+    public String schemaName;
 
-    SwSessionInfo() {
+    public SwSessionInfo() {
     }
 
     public String getAuthToken() {
         return authToken;
     }
 
+    @JsOverlay
     public AuthType getUserType() {
-        return userType;
+        return AuthType.fromString(userType);
     }
 
+    @JsOverlay
     public boolean isAnonymous() {
-        return userType == null || userType.isAnonymous();
+        return userType == null || getUserType().isAnonymous();
     }
 
     public String getUserName() {
@@ -82,16 +87,9 @@ public class SwSessionInfo implements Serializable {
         return officeCode;
     }
 
-    public Set<Permission> getPermissions() {
-        return permissions;
-    }
-
-    public static SwSessionInfo notLoggedIn(AuthType userType, String userName) {
-        SwSessionInfo swSession = new SwSessionInfo();
-        swSession.userType = userType;
-        swSession.userName = userName;
-        return swSession;
-    }
+//    public Set<Permission> getPermissions() {
+//        return permissions;
+//    }
 
     public Integer getAgentXDaysPayNow() {
         return agentXDaysPayNow;
@@ -105,11 +103,12 @@ public class SwSessionInfo implements Serializable {
         return schemaName;
     }
 
+    @JsOverlay
     public Long getCurrentUserId() {
         if (userType == null) {
             return 0L;
         }
-        switch (userType) {
+        switch (getUserType()) {
             case CUSTOMER:
                 return getClientId();
             case TRAVEL_AGENT:
@@ -124,11 +123,13 @@ public class SwSessionInfo implements Serializable {
     }
 
     @Override
+    @JsOverlay
     public int hashCode(){
     	return Objects.hashCode(authToken, sessionId);
     }
 
     @Override
+    @JsOverlay
     public boolean equals(Object object){
     	if (object instanceof SwSessionInfo) {
     		SwSessionInfo that = (SwSessionInfo) object;

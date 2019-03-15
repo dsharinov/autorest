@@ -10,27 +10,27 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("GwtInconsistentSerializableClass")
-public class RequestCallbackBuilder extends RequestBuilder {
-    public static final Function<RequestCallbackBuilder, XMLHttpRequest> DEFAULT_REQUEST_FACTORY = data -> {
+public class CallbackResourceBuilder extends RequestBuilder {
+    public static final Function<CallbackResourceBuilder, XMLHttpRequest> DEFAULT_REQUEST_FACTORY = data -> {
         XMLHttpRequest xhr = new XMLHttpRequest(); xhr.open(data.method(), data.uri()); return xhr;
     };
-    public static final BiFunction<XMLHttpRequest, RequestCallbackBuilder, XMLHttpRequest> DEFAULT_REQUEST_TRANSFORMER = (xml, data) -> xml;
+    public static final BiFunction<XMLHttpRequest, CallbackResourceBuilder, XMLHttpRequest> DEFAULT_REQUEST_TRANSFORMER = (xml, data) -> xml;
     public static final Function<XMLHttpRequest, FailedStatusCodeException> DEFAULT_UNEXPECTED_MAPPER = xhr -> new FailedStatusCodeException(xhr.status, xhr.statusText);
 
-    private Function<RequestCallbackBuilder, XMLHttpRequest> requestFactory = DEFAULT_REQUEST_FACTORY;
+    private Function<CallbackResourceBuilder, XMLHttpRequest> requestFactory = DEFAULT_REQUEST_FACTORY;
     private Function<XMLHttpRequest, FailedStatusCodeException> unexpectedMapper = DEFAULT_UNEXPECTED_MAPPER;
-    private BiFunction<XMLHttpRequest, RequestCallbackBuilder, XMLHttpRequest> requestTransformer = DEFAULT_REQUEST_TRANSFORMER;
+    private BiFunction<XMLHttpRequest, CallbackResourceBuilder, XMLHttpRequest> requestTransformer = DEFAULT_REQUEST_TRANSFORMER;
 
-    public RequestCallbackBuilder requestFactory(Function<RequestCallbackBuilder, XMLHttpRequest> fn) {
+    public CallbackResourceBuilder requestFactory(Function<CallbackResourceBuilder, XMLHttpRequest> fn) {
         this.requestFactory = fn; return this;
     }
 
-    public RequestCallbackBuilder unexpectedMapper(Function<XMLHttpRequest, FailedStatusCodeException> fn) {
+    public CallbackResourceBuilder unexpectedMapper(Function<XMLHttpRequest, FailedStatusCodeException> fn) {
         this.unexpectedMapper = fn; return this;
     }
 
-    public RequestCallbackBuilder requestTransformer(
-            BiFunction<XMLHttpRequest, RequestCallbackBuilder, XMLHttpRequest> fn) {
+    public CallbackResourceBuilder requestTransformer(
+            BiFunction<XMLHttpRequest, CallbackResourceBuilder, XMLHttpRequest> fn) {
         this.requestTransformer = fn; return this;
     }
 

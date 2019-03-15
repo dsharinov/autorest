@@ -39,6 +39,13 @@ public interface SessionResource {
             String password,
             @QueryParam("agencyId") String agencyId);
 
+    default
+    SwSessionInfo login(
+            @QueryParam("authType") AuthType authenticationType,
+            @QueryParam("user") String userName,
+            String password) {
+        return login(authenticationType, userName, password, null);
+    }
 
     /**
      * User login with check-in information

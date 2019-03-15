@@ -6,5 +6,6 @@
     <inherits name="io.reactivex.RxJava"/>
     <collapse-all-properties/>
     <servlet path="/api/*" class="com.intendia.gwt.autorest.example.server.GreetingServlet"/>
+    <servlet path="/rest/*" class="com.intendia.gwt.autorest.example.server.SessionServlet"/>
     <entry-point class="com.intendia.gwt.autorest.example.client.ExampleEntryPoint"/>
 </module>
