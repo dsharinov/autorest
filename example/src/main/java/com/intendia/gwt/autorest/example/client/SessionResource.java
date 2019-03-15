@@ -76,6 +76,12 @@ public interface SessionResource {
     @Path("current")
     SwSessionInfo getSessionInfo();
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("validate")
+    Boolean validateSessionInfo(SwSessionInfo sessionInfo);
+
     /**
      * Logout current Seaware session
      */

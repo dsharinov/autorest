@@ -10,12 +10,17 @@ import com.google.common.base.Strings;
 import com.intendia.gwt.autorest.example.client.AuthType;
 import com.intendia.gwt.autorest.example.client.SwSessionInfo;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.entity.ContentType;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +32,8 @@ public class SessionServlet extends HttpServlet {
     private static final String helloWorldJson = "[{\"greeting\":\"Hello World\"}]";
 
     private final ObjectMapper mapper;
+
+    private final Map<String, SwSessionInfo> sessions = new HashMap<>();
 
     public SessionServlet() {
         super();
@@ -63,19 +70,30 @@ public class SessionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         String uri = req.getRequestURI();
 
-        Object value = null;
-        if (uri.endsWith("/login")) {
-            L.info("Attempting to login");
-            value = doLogin(req);
-        }
-
         try {
+            Object value = null;
+            if (uri.endsWith("/login")) {
+                L.info("Attempting to login");
+                value = doLogin(req);
+            } else if (uri.endsWith("/current")) {
+                L.info("validating current session");
+                String authToken = req.getHeader("auth");
+                if (Strings.isNullOrEmpty(authToken) || !sessions.containsKey(authToken))
+                    throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+                value = sessions.get(authToken);
+            } else if (uri.endsWith("/validate")) {
+                SwSessionInfo sessionInfo = mapper.readValue(req.getInputStream(), SwSessionInfo.class);
+                resp.setContentType(ContentType.TEXT_PLAIN.withCharset(UTF_8).toString());
+                resp.getOutputStream().print(sessions.containsKey(sessionInfo.authToken)
+                        ? "true" : "false");
+            }
+
             if (value != null) {
                 resp.setContentType(ContentType.APPLICATION_JSON.withCharset(UTF_8).toString());
                 mapper.writeValue(resp.getOutputStream(), value);
             }
         } catch (Throwable e) {
-            L.log(Level.SEVERE, "error creating custom greeting", e);
+            L.log(Level.SEVERE, "error processing request", e);
         }
     }
 
@@ -87,8 +105,10 @@ public class SessionServlet extends HttpServlet {
             if (Strings.isNullOrEmpty(password))
                 throw new RuntimeException("Password must be set");
             SwSessionInfo sessionInfo = new SwSessionInfo();
+            sessionInfo.authToken = RandomStringUtils.randomAlphanumeric(15);
             sessionInfo.userName = user;
             sessionInfo.userType = authType.name();
+            sessions.put(sessionInfo.authToken, sessionInfo);
             return sessionInfo;
         } catch (IOException e) {
             L.log(Level.SEVERE, "Error logging in", e);
