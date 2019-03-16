@@ -5,22 +5,20 @@ import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsPackage;
 import jsinterop.annotations.JsType;
 
-import java.io.Serializable;
-
 /**
  * Stores information about current Seaware session with ability to be read/written it as a cookie
  */
 @JsType(isNative = true, namespace = JsPackage.GLOBAL, name = "Object")
-public class SwSessionInfo implements Serializable {
+public class SwSessionInfo {
 
     public String authToken;
     public String userType;
     public String userName;
     public String displayName;
     public String sessionId;
-    public Long clientId;
-    public Long agentId;
-    public Long agencyId;
+    public long clientId;
+    public long agentId;
+    public long agencyId;
     public int inactivityTimeout; // in minutes
     public String currency;
     public String country;
@@ -33,57 +31,68 @@ public class SwSessionInfo implements Serializable {
     public SwSessionInfo() {
     }
 
-    public String getAuthToken() {
+    @JsOverlay
+    public final String getAuthToken() {
         return authToken;
     }
 
     @JsOverlay
-    public AuthType getUserType() {
+    public final AuthType getUserType() {
         return AuthType.fromString(userType);
     }
 
     @JsOverlay
-    public boolean isAnonymous() {
+    public final boolean isAnonymous() {
         return userType == null || getUserType().isAnonymous();
     }
 
-    public String getUserName() {
+    @JsOverlay
+    public final String getUserName() {
         return userName;
     }
 
-    public String getDisplayName() {
+    @JsOverlay
+    public final String getDisplayName() {
         return displayName;
     }
 
-    public String getSessionId() {
+    @JsOverlay
+    public final String getSessionId() {
         return sessionId;
     }
 
-    public Long getClientId() {
+    @JsOverlay
+    public final Long getClientId() {
         return clientId;
     }
 
-    public Long getAgentId() {
+    @JsOverlay
+    public final Long getAgentId() {
         return agentId;
     }
 
-    public Long getAgencyId() {
+    @JsOverlay
+    public final Long getAgencyId() {
         return agencyId;
     }
 
-    public int getInactivityTimeout() {
+    @JsOverlay
+    public final int getInactivityTimeout() {
         return inactivityTimeout;
     }
 
-    public String getCurrency() {
+    @JsOverlay
+    public final String getCurrency() {
         return currency;
     }
 
-    public String getCountry() {
+    @JsOverlay
+    public final String getCountry() {
         return country;
     }
 
-    public String getOfficeCode() {
+    @JsOverlay
+    public final String getOfficeCode() {
         return officeCode;
     }
 
@@ -91,20 +100,23 @@ public class SwSessionInfo implements Serializable {
 //        return permissions;
 //    }
 
-    public Integer getAgentXDaysPayNow() {
+    @JsOverlay
+    public final Integer getAgentXDaysPayNow() {
         return agentXDaysPayNow;
     }
 
-    public String getTnsName() {
+    @JsOverlay
+    public final String getTnsName() {
         return tnsName;
     }
 
-    public String getSchemaName() {
+    @JsOverlay
+    public final String getSchemaName() {
         return schemaName;
     }
 
     @JsOverlay
-    public Long getCurrentUserId() {
+    public final Long getCurrentUserId() {
         if (userType == null) {
             return 0L;
         }
@@ -124,13 +136,13 @@ public class SwSessionInfo implements Serializable {
 
     @Override
     @JsOverlay
-    public int hashCode(){
+    public final int hashCode(){
     	return Objects.hashCode(authToken, sessionId);
     }
 
     @Override
     @JsOverlay
-    public boolean equals(Object object){
+    public final boolean equals(Object object){
     	if (object instanceof SwSessionInfo) {
     		SwSessionInfo that = (SwSessionInfo) object;
     		return Objects.equal(this.authToken, that.authToken) &&

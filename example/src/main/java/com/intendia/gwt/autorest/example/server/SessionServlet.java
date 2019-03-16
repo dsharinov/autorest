@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.intendia.gwt.autorest.example.client.AuthType;
@@ -16,8 +15,6 @@ import org.apache.http.entity.ContentType;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,23 +44,7 @@ public class SessionServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        String uri = req.getRequestURI();
-        L.info("Sending 'Hello World' in response of " + uri);
-        try {
-            String FOO_URI = "/example/api/observable/foo";
-            if (uri.equals(FOO_URI)) {
-                resp.getWriter().write("[{\"greeting\":\"/foo\"}]");
-            } else if (uri.startsWith(FOO_URI)) {
-                String x = uri.substring(FOO_URI.length()) + "?" + req.getQueryString();
-                resp.getWriter().write("[{\"greeting\":\"/foo" + x + "\"}]");
-            } else {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode helloJsonNode = mapper.readTree(helloWorldJson);
-                mapper.writeValue(resp.getOutputStream(), helloJsonNode);
-            }
-        } catch (Throwable e) {
-            L.log(Level.SEVERE, "error sending 'Hello World'", e);
-        }
+        doPost(req, resp);
     }
 
     @Override
@@ -79,7 +60,7 @@ public class SessionServlet extends HttpServlet {
                 L.info("validating current session");
                 String authToken = req.getHeader("auth");
                 if (Strings.isNullOrEmpty(authToken) || !sessions.containsKey(authToken))
-                    throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+                    throw new RuntimeException(String.format("Token <%s> is invalid", authToken));
                 value = sessions.get(authToken);
             } else if (uri.endsWith("/validate")) {
                 SwSessionInfo sessionInfo = mapper.readValue(req.getInputStream(), SwSessionInfo.class);

@@ -21,6 +21,7 @@ import io.reactivex.functions.Consumer;
 public class ExampleEntryPoint implements EntryPoint {
     private Consumer<Throwable> err = e -> GWT.log("exception: " + e, e);
     private java.util.function.Consumer<Throwable> onError  = e -> GWT.log("exception: " + e, e);
+    //private SwSessionInfo sessionInfo;
 
     public void onModuleLoad() {
         TextBox name = append(new TextBox());
@@ -50,11 +51,45 @@ public class ExampleEntryPoint implements EntryPoint {
         exampleSrv.getFoo("FOO", "BAR", null).subscribe(n -> append("observable.foo response: " + n.greeting), err);
         */
 
-        ResourceVisitor.Supplier getRest = () -> new CallbackResourceBuilder().path(GWT.getModuleBaseURL(), "rest");
-        SessionResource loginSrv = new SessionResource_RestServiceProxy<SwSessionInfo>(
-                getRest, info -> append("User "+info.userName+" logged in"), onError);
+        final ResourceVisitor.Supplier getRest = () -> new CallbackResourceBuilder().path(GWT.getModuleBaseURL(), "rest");
 
-        loginSrv.login(AuthType.RES_AGENT, "user", "password");
+        new SessionResource_RestServiceProxy<Void>(
+                getRest::get, v -> append("pinged"), onError).ping();
+
+        new SessionResource_RestServiceProxy<>(
+                getRest::get, this::onLogin, onError)
+                .login(AuthType.RES_AGENT, "user", "password");
+
+        // error test - getting session info w/o auth token
+
+        new SessionResource_RestServiceProxy<SwSessionInfo>(
+                () -> getRest().get(),
+                sessionInfo -> append("Empty Token is valid"), onError)
+                .getSessionInfo();
+    }
+
+    private ResourceVisitor.Supplier getRest() {
+        return () -> new CallbackResourceBuilder().path(GWT.getModuleBaseURL(), "rest");
+    }
+
+    private void onLogin(SwSessionInfo info) {
+        append("User '"+info.userName+"' logged in");
+        new SessionResource_RestServiceProxy<SwSessionInfo>(
+                () -> getRest().get().header("auth", info.authToken),
+                sessionInfo -> append("Token "+sessionInfo.authToken+" is valid"), onError)
+                .getSessionInfo();
+
+        new SessionResource_RestServiceProxy<Boolean>(
+                () -> getRest().get().header("auth", info.authToken),
+                b -> append("Session "+ (b ? " is valid" : " is not valid")), onError)
+                .validateSessionInfo(info);
+
+        SwSessionInfo sessionInfo = new SwSessionInfo();
+        sessionInfo.authToken = "ZZZ";
+        new SessionResource_RestServiceProxy<Boolean>(
+                () -> getRest().get().header("auth", info.authToken),
+                b -> append("Expired Session "+ (b ? " is valid" : " is not valid")), onError)
+                .validateSessionInfo(sessionInfo);
     }
 
     private static void append(String text) {
