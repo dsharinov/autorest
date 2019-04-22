@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 // @WebServlet(name = "greeting-service", urlPatterns = "/example/api/*")
 public class SessionServlet extends HttpServlet {
@@ -55,12 +56,12 @@ public class SessionServlet extends HttpServlet {
             Object value = null;
             if (uri.endsWith("/login")) {
                 L.info("Attempting to login");
-                value = doLogin(req);
+                value = doLogin(req, resp);
             } else if (uri.endsWith("/current")) {
                 L.info("validating current session");
                 String authToken = req.getHeader("auth");
                 if (Strings.isNullOrEmpty(authToken) || !sessions.containsKey(authToken))
-                    throw new RuntimeException(String.format("Token <%s> is invalid", authToken));
+                    abortRequest(resp, String.format("Token <%s> is invalid", authToken));
                 value = sessions.get(authToken);
             } else if (uri.endsWith("/validate")) {
                 SwSessionInfo sessionInfo = mapper.readValue(req.getInputStream(), SwSessionInfo.class);
@@ -78,13 +79,13 @@ public class SessionServlet extends HttpServlet {
         }
     }
 
-    private SwSessionInfo doLogin(HttpServletRequest req) {
+    private SwSessionInfo doLogin(HttpServletRequest req, HttpServletResponse resp) {
         AuthType authType = AuthType.fromString(req.getParameter("authType"));
         String user = req.getParameter("user");
         try {
             String password = IOUtils.toString(req.getInputStream(), UTF_8);
             if (Strings.isNullOrEmpty(password))
-                throw new RuntimeException("Password must be set");
+                abortRequest(resp, "Password must be set");
             SwSessionInfo sessionInfo = new SwSessionInfo();
             sessionInfo.authToken = RandomStringUtils.randomAlphanumeric(15);
             sessionInfo.userName = user;
@@ -95,6 +96,14 @@ public class SessionServlet extends HttpServlet {
             L.log(Level.SEVERE, "Error logging in", e);
         }
         return null;
+    }
+
+    private static void abortRequest(HttpServletResponse response, String message) {
+        try {
+            response.sendError(INTERNAL_SERVER_ERROR.getStatusCode(), message);
+        } catch (IOException e) {
+            L.log(Level.SEVERE, "Error producing error", e);
+        }
     }
 
     @Override protected void doPut(HttpServletRequest req, HttpServletResponse resp) {

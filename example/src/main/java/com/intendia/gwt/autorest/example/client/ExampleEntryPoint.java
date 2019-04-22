@@ -20,7 +20,10 @@ import io.reactivex.functions.Consumer;
 
 public class ExampleEntryPoint implements EntryPoint {
     private Consumer<Throwable> err = e -> GWT.log("exception: " + e, e);
-    private java.util.function.Consumer<Throwable> onError  = e -> GWT.log("exception: " + e, e);
+    private java.util.function.Consumer<Throwable> onError  = e ->  {
+        GWT.log("exception: " + e, e);
+        append("exception: "  +e.getMessage());
+    };
     //private SwSessionInfo sessionInfo;
 
     public void onModuleLoad() {
