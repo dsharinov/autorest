@@ -171,13 +171,15 @@ abstract class AbstractRestGwtServiceBuilder {
                         .orElse("/* path param " + path + " does not match any argument! */"))
                 .collect(Collectors.joining(", ")));
         // produces
-        builder.add(".produces($L)", Arrays
-                .stream(ofNullable(method.getAnnotation(Produces.class)).map(Produces::value).orElse(produces))
-                .map(str -> "\"" + str + "\"").collect(Collectors.joining(", ")));
+        if (produces.length > 0)
+            builder.add(".produces($L)", Arrays
+                    .stream(ofNullable(method.getAnnotation(Produces.class)).map(Produces::value).orElse(produces))
+                    .map(str -> "\"" + str + "\"").collect(Collectors.joining(", ")));
         // consumes
-        builder.add(".consumes($L)", Arrays
-                .stream(ofNullable(method.getAnnotation(Consumes.class)).map(Consumes::value).orElse(consumes))
-                .map(str -> "\"" + str + "\"").collect(Collectors.joining(", ")));
+        if (consumes.length > 0)
+            builder.add(".consumes($L)", Arrays
+                    .stream(ofNullable(method.getAnnotation(Consumes.class)).map(Consumes::value).orElse(consumes))
+                    .map(str -> "\"" + str + "\"").collect(Collectors.joining(", ")));
         // query params
         method.getParameters().stream().filter(p -> p.getAnnotation(QueryParam.class) != null).forEach(p ->
                 builder.add(".param($S, $L)", p.getAnnotation(QueryParam.class).value(), p.getSimpleName()));
