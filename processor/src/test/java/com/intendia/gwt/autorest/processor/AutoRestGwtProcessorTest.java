@@ -17,7 +17,7 @@ public class AutoRestGwtProcessorTest {
                         + "@Path(\"a\") interface Rest {\n"
                         + "    @GET Optional<String> getStr();\n"
                         + "}"))
-                .withCompilerOptions("-AskipJavaLangImports")
+                .withCompilerOptions("-AskipJavaLangImports", "-AskipGeneratedAnnotation")
                 .processedWith(new AutoRestGwtProcessor())
                 .compilesWithoutError().and()
                 .generatesSources(JavaFileObjects.forSourceString("Rest_RestServiceModel", ""
@@ -31,14 +31,14 @@ public class AutoRestGwtProcessorTest {
                         + "public class Rest_RestServiceModel extends RestServiceModel implements Rest {\n"
                         + "    @Inject\n"
                         + "    public Rest_RestServiceModel(final ResourceVisitor.Supplier parent) {\n"
-                        + "        super(new ResourceVisitor.Supplier() {\n"
-                        + "            public ResourceVisitor get() { return parent.get().path(\"a\"); }\n"
-                        + "        });\n"
+                        + "        super(new ResourceVisitor.Supplier() { public ResourceVisitor get() { return parent.get().path(\"a\"); } });\n"
                         + "    }\n"
                         + "\n"
                         + "    @Override"
+                        + "\n"
                         + "    public Optional<String> getStr() {\n"
-                        + "        return method(GET).path().produces().consumes().as(Optional.class, String.class);\n"
+                        + "        return method(GET)\n"
+                        + "                .path().as(Optional.class, String.class);\n"
                         + "    }\n"
                         + "}"));
     }

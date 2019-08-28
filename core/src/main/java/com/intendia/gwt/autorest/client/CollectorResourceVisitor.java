@@ -1,15 +1,16 @@
 package com.intendia.gwt.autorest.client;
 
+import javax.annotation.Nullable;
+import javax.ws.rs.HttpMethod;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import static com.intendia.gwt.autorest.client.CollectorResourceVisitor.Param.expand;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import javax.annotation.Nullable;
-import javax.ws.rs.HttpMethod;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 /* @Experimental */
 public abstract class CollectorResourceVisitor implements ResourceVisitor {
@@ -36,8 +37,8 @@ public abstract class CollectorResourceVisitor implements ResourceVisitor {
     protected List<Param> headerParams = new ArrayList<>();
     protected List<Param> formParams = new ArrayList<>();
     protected String method = HttpMethod.GET;
-    protected String produces[] = { "application/json" };
-    protected String consumes[] = { "application/json" };
+    protected String[] produces = { APPLICATION_JSON };
+    protected String[] consumes = { APPLICATION_JSON };
     protected Object data = null;
     private List<Integer> expectedStatuses = DEFAULT_EXPECTED_STATUS;
 

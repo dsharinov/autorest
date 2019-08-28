@@ -84,4 +84,11 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
         return "_RestServiceProxy";
     }
 
+    @Override
+    protected CodeBlock newInstanceSupplier(ClassName className) {
+        return CodeBlock.builder()
+                .add("(p, s, e) -> new $L(p, s, e)", className.simpleName())
+                .build();
+    }
+
 }

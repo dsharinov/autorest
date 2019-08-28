@@ -62,4 +62,11 @@ public class RxGwtBuilder extends AbstractRestGwtServiceBuilder {
     protected String suffix() {
         return "_RestServiceModel";
     }
+
+    @Override
+    protected CodeBlock newInstanceSupplier(ClassName className) {
+        return CodeBlock.builder()
+                .add("p -> new $L(p)", className.simpleName())
+                .build();
+    }
 }

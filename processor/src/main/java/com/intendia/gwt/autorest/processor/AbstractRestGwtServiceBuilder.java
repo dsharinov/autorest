@@ -10,6 +10,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import javax.annotation.Generated;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -18,6 +19,8 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -30,6 +33,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +68,7 @@ abstract class AbstractRestGwtServiceBuilder {
         this.processingEnv = processingEnv;
     }
 
-    public void buildRestService(TypeElement restService) throws IOException {
+    public ClassName buildRestService(TypeElement restService, TypeMirror factory) throws IOException {
         String rsPath = restService.getAnnotation(Path.class).value();
         String[] produces = ofNullable(restService.getAnnotation(Produces.class)).map(Produces::value).orElse(EMPTY);
         String[] consumes = ofNullable(restService.getAnnotation(Consumes.class)).map(Consumes::value).orElse(EMPTY);
@@ -81,6 +85,20 @@ abstract class AbstractRestGwtServiceBuilder {
                 .superclass(RestServiceModel.class)
                 .addSuperinterface(TypeName.get(restService.asType()));
 
+        if (!processingEnv.getOptions().containsKey("skipGeneratedAnnotation")) {
+            modelTypeBuilder.addAnnotation(AnnotationSpec.builder(Generated.class)
+                    .addMember("value", "$S", AutoRestGwtProcessor.class.getCanonicalName())
+                    .addMember("date", "$S", LocalDateTime.now().toString())
+                    .build());
+        }
+
+        if (factory != null && factory.getKind() == TypeKind.DECLARED) {
+            modelTypeBuilder.addStaticBlock(CodeBlock.builder()
+                    .addStatement("$T.register($L.class, $L)", factory, rsName.simpleName(),
+                            newInstanceSupplier(modelName))
+                    .build());
+        }
+
         Set<String> methodImports = new HashSet<>();
         doBuildRestService(restService, rsPath, produces, consumes,
                 rsName, modelName, modelTypeBuilder, method -> methodImport(methodImports, method));
@@ -94,9 +112,13 @@ abstract class AbstractRestGwtServiceBuilder {
                 .skipJavaLangImports(skipJavaLangImports)
                 .build()
                 .writeTo(filer);
+
+        return modelName;
     }
 
     abstract protected String suffix();
+
+    abstract protected CodeBlock newInstanceSupplier(ClassName className);
 
     protected abstract void doBuildRestService(TypeElement restService, String rsPath,
                                                String[] produces, String[] consumes,
