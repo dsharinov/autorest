@@ -1,6 +1,8 @@
 package com.intendia.gwt.autorest.client;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /** Visit each resource gathering the metadata and end up calling {@link #as(Class, Class)}. */
@@ -34,6 +36,16 @@ public interface ResourceVisitor {
     <T> T as(Class<? super T> container, Class<?> type);
 
     <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError);
+
+    default
+    <T> void remoteCallForList(Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    default
+    <T> void remoteCallForSet(Consumer<Set<T>> onSuccess, Consumer<Throwable> onError) {
+        throw new RuntimeException("Not implemented");
+    }
 
     interface Supplier {
         ResourceVisitor get();

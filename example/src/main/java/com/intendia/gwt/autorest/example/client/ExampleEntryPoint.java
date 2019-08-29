@@ -18,6 +18,8 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.functions.Consumer;
 
+import java.util.List;
+
 public class ExampleEntryPoint implements EntryPoint {
     private Consumer<Throwable> err = e -> GWT.log("exception: " + e, e);
     private java.util.function.Consumer<Throwable> onError  = e ->  {
@@ -69,10 +71,19 @@ public class ExampleEntryPoint implements EntryPoint {
                 () -> getRest().get(),
                 sessionInfo -> append("Empty Token is valid"), onError)
                 .getSessionInfo();
+
+        new SessionResource_RestServiceProxy<>(
+                () -> getRest().get(),
+                this::printList, onError)
+                .getWeekend();
     }
 
     private ResourceVisitor.Supplier getRest() {
         return () -> new CallbackResourceBuilder().path(GWT.getModuleBaseURL(), "rest");
+    }
+
+    private void printList(List<String> values) {
+        values.forEach(ExampleEntryPoint::append);
     }
 
     private void onLogin(SwSessionInfo info) {

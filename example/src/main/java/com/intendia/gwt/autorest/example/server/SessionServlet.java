@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.intendia.gwt.autorest.example.client.AuthType;
 import com.intendia.gwt.autorest.example.client.SwSessionInfo;
 import org.apache.commons.io.IOUtils;
@@ -68,6 +69,8 @@ public class SessionServlet extends HttpServlet {
                 resp.setContentType(ContentType.TEXT_PLAIN.withCharset(UTF_8).toString());
                 resp.getOutputStream().print(sessions.containsKey(sessionInfo.authToken)
                         ? "true" : "false");
+            } else if (uri.endsWith("/weekend")) {
+                value = ImmutableList.of("Saturday", "Sunday");
             }
 
             if (value != null) {

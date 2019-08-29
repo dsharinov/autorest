@@ -4,6 +4,7 @@
     <inherits name="com.google.common.collect.Collect" />
     <inherits name="com.intendia.gwt.autorest.AutoRest"/>
     <inherits name="io.reactivex.RxJava"/>
+    <inherits name="gwt.interop.utils.InteropUtils" />
     <collapse-all-properties/>
     <servlet path="/api/*" class="com.intendia.gwt.autorest.example.server.GreetingServlet"/>
     <servlet path="/rest/*" class="com.intendia.gwt.autorest.example.server.SessionServlet"/>

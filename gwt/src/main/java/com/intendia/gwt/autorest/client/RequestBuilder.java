@@ -3,11 +3,16 @@ package com.intendia.gwt.autorest.client;
 import elemental2.core.Global;
 import elemental2.dom.FormData;
 import elemental2.dom.XMLHttpRequest;
+import gwt.interop.utils.shared.collections.Array;
 import jsinterop.base.Js;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static elemental2.core.Global.encodeURIComponent;
 import static javax.ws.rs.core.HttpHeaders.ACCEPT;
@@ -28,6 +33,16 @@ abstract class RequestBuilder extends CollectorResourceVisitor {
         } catch (Throwable e) {
             throw new RequestResponseException.ResponseFormatException("Parsing response error", e);
         }
+    }
+
+    static <T> List<T> decodeAsList(XMLHttpRequest ctx) {
+        Array<T> arr = decode(ctx);
+        return arr != null ? arr.asList() : new ArrayList<>();
+    }
+
+    static <T> Set<T> decodeAsSet(XMLHttpRequest ctx) {
+        Array<T> arr = decode(ctx);
+        return arr != null ? new HashSet<>(arr.asList()) : new HashSet<>();
     }
 
     protected Map<String, String> getHeaders(XMLHttpRequest xhr) {

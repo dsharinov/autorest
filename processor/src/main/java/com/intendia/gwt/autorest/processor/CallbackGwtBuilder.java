@@ -12,8 +12,11 @@ import com.squareup.javapoet.TypeVariableName;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.NoType;
+import javax.lang.model.type.TypeMirror;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -44,6 +47,8 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
 
         TypeName callbackType = ParameterizedTypeName.get(ClassName.get(Consumer.class), typeVariable);
         TypeName errorHandlerType = ParameterizedTypeName.get(ClassName.get(Consumer.class), TypeName.get(Throwable.class));
+        TypeMirror listType = processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement(List.class.getCanonicalName()).asType());
+        TypeMirror setType = processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement(Set.class.getCanonicalName()).asType());
         modelTypeBuilder
                 .addField(callbackType, ON_SUCCESS, PRIVATE, FINAL)
                 .addField(errorHandlerType, ON_ERROR, PRIVATE, FINAL)
@@ -72,7 +77,16 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
             {
                 prepareCall(produces, consumes, checkMethodName, method, builder);
             }
-            builder.add(".remoteCall($L, $L);\n", ON_SUCCESS, ON_ERROR);
+            String remoteCallName = "remoteCall";
+            CodeBlock typeConversion = CodeBlock.of("");
+            if (processingEnv.getTypeUtils().isSameType(processingEnv.getTypeUtils().erasure(method.getReturnType()), listType)) {
+                remoteCallName = "remoteCallForList";
+                typeConversion = CodeBlock.of("(Consumer<List<$T>>)", ((DeclaredType) method.getReturnType()).getTypeArguments().get(0));
+            } else if (processingEnv.getTypeUtils().isSameType(processingEnv.getTypeUtils().erasure(method.getReturnType()), setType)) {
+                remoteCallName = "remoteCallForSet";
+                typeConversion = CodeBlock.of("(Consumer<Set<$T>>)", ((DeclaredType) method.getReturnType()).getTypeArguments().get(0));
+            }
+            builder.add(".$L($L $L, $L);\n", remoteCallName, typeConversion, ON_SUCCESS, ON_ERROR);
             builder.addStatement("return$L", method.getReturnType() instanceof NoType ? "" : " null");
 
             modelTypeBuilder.addMethod(MethodSpec.overriding(method).addCode(builder.build()).build());

@@ -3,7 +3,9 @@ package com.intendia.gwt.autorest.client;
 import com.intendia.gwt.autorest.client.RequestResponseException.FailedStatusCodeException;
 import elemental2.dom.XMLHttpRequest;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -41,6 +43,16 @@ public class CallbackResourceBuilder extends RequestBuilder {
     @Override
     public <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError) {
         request(ctx -> onSuccess.accept(decode(ctx)), (ctx, e) -> onError.accept(e));
+    }
+
+    @Override
+    public <T> void remoteCallForList(Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
+        request(ctx -> onSuccess.accept(decodeAsList(ctx)), (ctx, e) -> onError.accept(e));
+    }
+
+    @Override
+    public <T> void remoteCallForSet(Consumer<Set<T>> onSuccess, Consumer<Throwable> onError) {
+        request(ctx -> onSuccess.accept(decodeAsSet(ctx)), (ctx, e) -> onError.accept(e));
     }
 
     private void request(Consumer<XMLHttpRequest> onSuccess, BiConsumer<XMLHttpRequest, Throwable> onError) {

@@ -154,6 +154,11 @@ public interface SessionResource {
     @Path("securityReport")
     List<ValidationMessage> getSecurityReport();
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("weekend")
+    List<String> getWeekend();
+
 
     SwSessionInfo impersonateByEmail(String loginEmail);
 }
