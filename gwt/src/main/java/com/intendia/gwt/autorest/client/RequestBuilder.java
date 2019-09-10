@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static elemental2.core.Global.encodeURIComponent;
 import static javax.ws.rs.core.HttpHeaders.ACCEPT;
@@ -31,7 +33,16 @@ abstract class RequestBuilder extends CollectorResourceVisitor {
             String text = ctx.response.asString();
             return text == null || text.isEmpty() ? null : Js.cast(Global.JSON.parse(text));
         } catch (Throwable e) {
-            throw new RequestResponseException.ResponseFormatException("Parsing response error", e);
+            throw new RequestResponseException.ResponseFormatException(ctx, "Parsing response error", e);
+        }
+    }
+
+    static <T> T decode(XMLHttpRequest ctx, Function<T, T> converter) {
+        try {
+            String text = ctx.response.asString();
+            return text == null || text.isEmpty() ? null : converter.apply(Js.cast(Global.JSON.parse(text)));
+        } catch (Throwable e) {
+            throw new RequestResponseException.ResponseFormatException(ctx, "Parsing response error", e);
         }
     }
 
@@ -41,8 +52,17 @@ abstract class RequestBuilder extends CollectorResourceVisitor {
     }
 
     static <T> Set<T> decodeAsSet(XMLHttpRequest ctx) {
+        return new HashSet<>(decodeAsList(ctx));
+    }
+
+    static <T> List<T> decodeAsList(XMLHttpRequest ctx, Function<T, T> converter) {
         Array<T> arr = decode(ctx);
-        return arr != null ? new HashSet<>(arr.asList()) : new HashSet<>();
+        return arr != null ? arr.stream().map(converter).collect(Collectors.toList())
+                : new ArrayList<>();
+    }
+
+    static <T> Set<T> decodeAsSet(XMLHttpRequest ctx, Function<T, T> converter) {
+        return new HashSet<>(decodeAsList(ctx, converter));
     }
 
     protected Map<String, String> getHeaders(XMLHttpRequest xhr) {
@@ -61,7 +81,7 @@ abstract class RequestBuilder extends CollectorResourceVisitor {
         } else {
             if (!headers.containsKey(CONTENT_TYPE)) xhr.setRequestHeader(CONTENT_TYPE, APPLICATION_JSON);
             if (!headers.containsKey(ACCEPT)) xhr.setRequestHeader(ACCEPT, APPLICATION_JSON);
-            if (data != null) xhr.send(Global.JSON.stringify(data));
+            if (data != null) xhr.send(data instanceof String ? (String) data : Global.JSON.stringify(data));
             else xhr.send();
         }
     }

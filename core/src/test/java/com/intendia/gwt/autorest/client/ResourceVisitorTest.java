@@ -2,8 +2,6 @@ package com.intendia.gwt.autorest.client;
 
 import org.junit.Test;
 
-import java.util.function.Consumer;
-
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -35,7 +33,7 @@ public class ResourceVisitorTest {
         @Override public <T> T as(Class<? super T> container, Class<?> type) { return null; }
 
         @Override
-        public <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError) {
+        public <T> void remoteCall(SuccessCallback<T> onSuccess, FailureCallback onError, Object context) {
         }
 
     }

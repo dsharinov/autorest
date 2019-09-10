@@ -5,6 +5,7 @@ import com.google.gson.stream.JsonReader;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -15,7 +16,6 @@ import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class JreResourceBuilder extends CollectorResourceVisitor {
@@ -46,7 +46,7 @@ public class JreResourceBuilder extends CollectorResourceVisitor {
     }
 
     @Override
-    public <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError) {
+    public <T> void remoteCall(SuccessCallback<T> onSuccess, FailureCallback onError, Object context) {
         throw new UnsupportedOperationException("remoteCall not supported");
     }
 

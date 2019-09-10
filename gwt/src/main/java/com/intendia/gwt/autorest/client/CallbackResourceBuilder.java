@@ -17,7 +17,7 @@ public class CallbackResourceBuilder extends RequestBuilder {
         XMLHttpRequest xhr = new XMLHttpRequest(); xhr.open(data.method(), data.uri()); return xhr;
     };
     public static final BiFunction<XMLHttpRequest, CallbackResourceBuilder, XMLHttpRequest> DEFAULT_REQUEST_TRANSFORMER = (xml, data) -> xml;
-    public static final Function<XMLHttpRequest, FailedStatusCodeException> DEFAULT_UNEXPECTED_MAPPER = xhr -> new FailedStatusCodeException(xhr.status, xhr.statusText);
+    public static final Function<XMLHttpRequest, FailedStatusCodeException> DEFAULT_UNEXPECTED_MAPPER = xhr -> new FailedStatusCodeException(xhr, xhr.status, xhr.statusText);
 
     private Function<CallbackResourceBuilder, XMLHttpRequest> requestFactory = DEFAULT_REQUEST_FACTORY;
     private Function<XMLHttpRequest, FailedStatusCodeException> unexpectedMapper = DEFAULT_UNEXPECTED_MAPPER;
@@ -41,18 +41,33 @@ public class CallbackResourceBuilder extends RequestBuilder {
     }
 
     @Override
-    public <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError) {
-        request(ctx -> onSuccess.accept(decode(ctx)), (ctx, e) -> onError.accept(e));
+    public <T> void remoteCall(SuccessCallback<T> onSuccess, FailureCallback onError, Object context) {
+        request(ctx -> onSuccess.accept(context, decode(ctx)), (ctx, e) -> onError.accept(context, e));
     }
 
     @Override
-    public <T> void remoteCallForList(Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
-        request(ctx -> onSuccess.accept(decodeAsList(ctx)), (ctx, e) -> onError.accept(e));
+    public <T> void remoteCallForList(SuccessCallback<List<T>> onSuccess, FailureCallback onError, Object context) {
+        request(ctx -> onSuccess.accept(context, decodeAsList(ctx)), (ctx, e) -> onError.accept(context, e));
     }
 
     @Override
-    public <T> void remoteCallForSet(Consumer<Set<T>> onSuccess, Consumer<Throwable> onError) {
-        request(ctx -> onSuccess.accept(decodeAsSet(ctx)), (ctx, e) -> onError.accept(e));
+    public <T> void remoteCallForSet(SuccessCallback<Set<T>> onSuccess, FailureCallback onError, Object context) {
+        request(ctx -> onSuccess.accept(context, decodeAsSet(ctx)), (ctx, e) -> onError.accept(context, e));
+    }
+
+    @Override
+    public <T> void remoteCall(SuccessCallback<T> onSuccess, FailureCallback onError, Object context, Function<T, T> converter) {
+        request(ctx -> onSuccess.accept(context, decode(ctx, converter)), (ctx, e) -> onError.accept(context, e));
+    }
+
+    @Override
+    public <T> void remoteCallForList(SuccessCallback<List<T>> onSuccess, FailureCallback onError, Object context, Function<T, T> converter) {
+        request(ctx -> onSuccess.accept(context, decodeAsList(ctx, converter)), (ctx, e) -> onError.accept(context, e));
+    }
+
+    @Override
+    public <T> void remoteCallForSet(SuccessCallback<Set<T>> onSuccess, FailureCallback onError, Object context, Function<T, T> converter) {
+        request(ctx -> onSuccess.accept(context, decodeAsSet(ctx, converter)), (ctx, e) -> onError.accept(context, e));
     }
 
     private void request(Consumer<XMLHttpRequest> onSuccess, BiConsumer<XMLHttpRequest, Throwable> onError) {
@@ -70,7 +85,7 @@ public class CallbackResourceBuilder extends RequestBuilder {
 
             sendRequest(xhr, headers);
         } catch (Throwable e) {
-            onError.accept(xhr, new RequestResponseException("", e));
+            onError.accept(xhr, new RequestResponseException(xhr, "", e));
         }
     }
 

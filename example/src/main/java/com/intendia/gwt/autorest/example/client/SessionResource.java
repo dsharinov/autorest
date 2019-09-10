@@ -44,6 +44,11 @@ public interface SessionResource {
             String password,
             @QueryParam("agencyId") String agencyId);
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("find")
+    List<SwSessionInfo> find();
+
     default
     SwSessionInfo login(
             @QueryParam("authType") AuthType authenticationType,
@@ -82,10 +87,16 @@ public interface SessionResource {
     SwSessionInfo getSessionInfo();
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("validate")
     Boolean validateSessionInfo(SwSessionInfo sessionInfo);
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("id")
+    Double getId();
 
     /**
      * Logout current Seaware session

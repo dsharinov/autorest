@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
@@ -22,9 +21,7 @@ public class RequestResourceBuilder extends RequestBuilder {
         XMLHttpRequest xhr = new XMLHttpRequest(); xhr.open(data.method(), data.uri()); return xhr;
     };
     public static final BiFunction<Single<XMLHttpRequest>, RequestResourceBuilder, Single<XMLHttpRequest>> DEFAULT_REQUEST_TRANSFORMER = (xml, data) -> xml;
-    public static final Function<XMLHttpRequest, RequestResponseException.FailedStatusCodeException> DEFAULT_UNEXPECTED_MAPPER = xhr -> {
-        return new RequestResponseException.FailedStatusCodeException(xhr.status, xhr.statusText);
-    };
+    public static final Function<XMLHttpRequest, RequestResponseException.FailedStatusCodeException> DEFAULT_UNEXPECTED_MAPPER = xhr -> new RequestResponseException.FailedStatusCodeException(xhr, xhr.status, xhr.statusText);
 
     private Function<RequestResourceBuilder, XMLHttpRequest> requestFactory = DEFAULT_REQUEST_FACTORY;
     private Function<XMLHttpRequest, RequestResponseException.FailedStatusCodeException> unexpectedMapper = DEFAULT_UNEXPECTED_MAPPER;
@@ -62,7 +59,7 @@ public class RequestResourceBuilder extends RequestBuilder {
     }
 
     @Override
-    public <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError) {
+    public <T> void remoteCall(SuccessCallback<T> onSuccess, FailureCallback onError, Object context) {
         throw new UnsupportedOperationException("remoteCall is not supported in reactive version");
     }
 
@@ -86,7 +83,7 @@ public class RequestResourceBuilder extends RequestBuilder {
 
                 sendRequest(xhr, headers);
             } catch (Throwable e) {
-                em.tryOnError(new RequestResponseException("", e));
+                em.tryOnError(new RequestResponseException(xhr, "", e));
             }
         }).compose(o -> requestTransformer.apply(o, this));
     }

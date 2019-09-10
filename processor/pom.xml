@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.intendia.gwt.autorest</groupId>
         <artifactId>autorest-parent</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.2-SNAPSHOT</version>
     </parent>
     <artifactId>autorest-processor</artifactId>
     <packaging>jar</packaging>

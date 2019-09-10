@@ -19,6 +19,7 @@ import com.squareup.javapoet.TypeVariableName;
 import javax.annotation.Generated;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
@@ -89,7 +90,7 @@ public class AutoRestGwtProcessor extends AbstractProcessor {
                         //AutoRestGwt autoRestGwt = restService.getAnnotation(AutoRestGwt.class);
                         AnnotationMirror annMirror = getMirror(restService);
                         if (annMirror != null) {
-                            Map<String, Object> annValues = getAnnValues(annMirror);
+                            Map<String, Object> annValues = getAnnValues(processingEnv, annMirror);
                             boolean rx = (Boolean) annValues.get("rx");
                             TypeMirror factory = (TypeMirror) annValues.get("factory");
                             TypeMirror factoryInterface = (TypeMirror) annValues.get("factoryInterface");
@@ -203,7 +204,7 @@ public class AutoRestGwtProcessor extends AbstractProcessor {
                 .orElse(null);
     }
 
-    private Map<String, Object> getAnnValues(AnnotationMirror annMirror) {
+    static Map<String, Object> getAnnValues(ProcessingEnvironment processingEnv, AnnotationMirror annMirror) {
         Map<? extends ExecutableElement, ? extends AnnotationValue> elemValues = processingEnv.getElementUtils()
                 .getElementValuesWithDefaults(annMirror);
         Map<String, Object> values = new HashMap<>();

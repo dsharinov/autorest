@@ -1,7 +1,6 @@
 package com.intendia.gwt.autorest.processor;
 
 import com.google.common.base.Strings;
-import com.intendia.gwt.autorest.client.RestServiceModel;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -82,7 +81,7 @@ abstract class AbstractRestGwtServiceBuilder {
         TypeSpec.Builder modelTypeBuilder = TypeSpec.classBuilder(modelName.simpleName())
                 .addOriginatingElement(restService)
                 .addModifiers(Modifier.PUBLIC)
-                .superclass(RestServiceModel.class)
+                .superclass(superclass())
                 .addSuperinterface(TypeName.get(restService.asType()));
 
         if (!processingEnv.getOptions().containsKey("skipGeneratedAnnotation")) {
@@ -119,6 +118,8 @@ abstract class AbstractRestGwtServiceBuilder {
     abstract protected String suffix();
 
     abstract protected CodeBlock newInstanceSupplier(ClassName className);
+
+    abstract protected TypeName superclass();
 
     protected abstract void doBuildRestService(TypeElement restService, String rsPath,
                                                String[] produces, String[] consumes,

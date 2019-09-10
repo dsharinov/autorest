@@ -3,7 +3,7 @@ package com.intendia.gwt.autorest.client;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /** Visit each resource gathering the metadata and end up calling {@link #as(Class, Class)}. */
 public interface ResourceVisitor {
@@ -35,15 +35,30 @@ public interface ResourceVisitor {
     /** Wrap the current resource state into a {@code container}. */
     <T> T as(Class<? super T> container, Class<?> type);
 
-    <T> void remoteCall(Consumer<T> onSuccess, Consumer<Throwable> onError);
+    <T> void remoteCall(SuccessCallback<T> onSuccess, FailureCallback onError, Object context);
 
     default
-    <T> void remoteCallForList(Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
+    <T> void remoteCallForList(SuccessCallback<List<T>> onSuccess, FailureCallback onError, Object context) {
         throw new RuntimeException("Not implemented");
     }
 
     default
-    <T> void remoteCallForSet(Consumer<Set<T>> onSuccess, Consumer<Throwable> onError) {
+    <T> void remoteCallForSet(SuccessCallback<Set<T>> onSuccess, FailureCallback onError, Object context) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    default
+    <T> void remoteCall(SuccessCallback<T> onSuccess, FailureCallback onError, Object context, Function<T, T> converter) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    default
+    <T> void remoteCallForList(SuccessCallback<List<T>> onSuccess, FailureCallback onError, Object context, Function<T, T> converter) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    default
+    <T> void remoteCallForSet(SuccessCallback<Set<T>> onSuccess, FailureCallback onError, Object context, Function<T, T> converter) {
         throw new RuntimeException("Not implemented");
     }
 

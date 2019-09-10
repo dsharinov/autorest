@@ -16,7 +16,7 @@
     <parent>
         <groupId>com.intendia.gwt.autorest</groupId>
         <artifactId>autorest-parent</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.2-SNAPSHOT</version>
     </parent>
     <artifactId>autorest-core</artifactId>
     <packaging>jar</packaging>
@@ -33,6 +33,11 @@
             <artifactId>jsr311-api</artifactId>
             <scope>provided</scope>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.google.elemental2</groupId>
+            <artifactId>elemental2-dom</artifactId>
+            <version>1.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>javax.inject</groupId>

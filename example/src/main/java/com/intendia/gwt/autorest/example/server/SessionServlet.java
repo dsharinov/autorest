@@ -11,12 +11,14 @@ import com.intendia.gwt.autorest.example.client.AuthType;
 import com.intendia.gwt.autorest.example.client.SwSessionInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.http.entity.ContentType;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -58,6 +60,8 @@ public class SessionServlet extends HttpServlet {
             if (uri.endsWith("/login")) {
                 L.info("Attempting to login");
                 value = doLogin(req, resp);
+            } else if (uri.endsWith("/find")) {
+                value = new ArrayList<>(sessions.values());
             } else if (uri.endsWith("/current")) {
                 L.info("validating current session");
                 String authToken = req.getHeader("auth");
@@ -71,6 +75,8 @@ public class SessionServlet extends HttpServlet {
                         ? "true" : "false");
             } else if (uri.endsWith("/weekend")) {
                 value = ImmutableList.of("Saturday", "Sunday");
+            } else if (uri.endsWith("/id")) {
+                value = RandomUtils.nextLong(0, 999L);
             }
 
             if (value != null) {

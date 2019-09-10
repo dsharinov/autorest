@@ -8,7 +8,7 @@ import jsinterop.annotations.JsType;
 /**
  * Stores information about current Seaware session with ability to be read/written it as a cookie
  */
-@JsType(isNative = true, namespace = JsPackage.GLOBAL, name = "Object")
+@JsType(isNative = true, namespace = JsPackage.GLOBAL, name = "SwSessionInfo")
 public class SwSessionInfo {
 
     public String authToken;

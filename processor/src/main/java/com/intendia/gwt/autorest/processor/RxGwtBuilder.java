@@ -2,6 +2,7 @@ package com.intendia.gwt.autorest.processor;
 
 import com.google.auto.common.MoreTypes;
 import com.intendia.gwt.autorest.client.ResourceVisitor;
+import com.intendia.gwt.autorest.client.RestServiceModel;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -68,5 +69,10 @@ public class RxGwtBuilder extends AbstractRestGwtServiceBuilder {
         return CodeBlock.builder()
                 .add("p -> new $L(p)", className.simpleName())
                 .build();
+    }
+
+    @Override
+    protected TypeName superclass() {
+        return ClassName.get(RestServiceModel.class);
     }
 }
