@@ -20,8 +20,10 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.NoType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static java.util.Optional.ofNullable;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
@@ -98,7 +101,11 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
                 builder.beginControlFlow("if ($L != null)", BEFORE_CALL);
                 builder.addStatement("$L.accept($L)", BEFORE_CALL, CONTEXT);
                 builder.endControlFlow();
-                prepareCall(produces, consumes, checkMethodName, method, builder);
+                String[] mProduces = ofNullable(method.getAnnotation(Produces.class)).map(Produces::value).orElse(EMPTY);
+                String[] mConsumes = ofNullable(method.getAnnotation(Consumes.class)).map(Consumes::value).orElse(EMPTY);
+                prepareCall(mProduces.length > 0 ? mProduces : produces,
+                        mConsumes.length > 0 ? mConsumes : consumes,
+                        checkMethodName, method, builder);
             }
             String remoteCallName = "remoteCall";
             CodeBlock typeConversion = CodeBlock.builder().build();
@@ -118,7 +125,7 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
 
             String jsName = returnObjType.getKind().isPrimitive() ? null : getOriginalJsName(getJsName(processingEnv.getTypeUtils().asElement(returnObjType)));
             if (!Strings.isNullOrEmpty(jsName)) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format("JS Name for %s = %s", returnObjType, jsName));
+                //processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format("JS Name for %s = %s", returnObjType, jsName));
                 if (!jsAdjusterPresent) {
                     modelTypeBuilder.addField(jsAdjusterType, JS_ADJUSTER, PRIVATE, STATIC);
                     modelTypeBuilder.addMethod(MethodSpec.methodBuilder("registerJsAdjuster")
@@ -135,13 +142,33 @@ public class CallbackGwtBuilder extends AbstractRestGwtServiceBuilder {
             } else
                 builder.add(".$L($L$L, $L, $L);\n", remoteCallName, typeConversion, ON_SUCCESS, ON_ERROR, CONTEXT);
             if (!(method.getReturnType() instanceof NoType))
-                builder.addStatement("return null");
+                builder.addStatement("return $L", getDefaultValue(method.getReturnType().getKind()));
 
             MethodSpec.Builder methodBuilder = MethodSpec.overriding(method)
                     .addCode(builder.build());
             if (!typeConversion.isEmpty() || !Strings.isNullOrEmpty(jsName))
                 methodBuilder.addAnnotation(supprWarnAnn);
             modelTypeBuilder.addMethod(methodBuilder.build());
+        }
+    }
+
+    private static String getDefaultValue(TypeKind typeKind) {
+        switch (typeKind) { // primitive types:
+            case BOOLEAN:
+                return "false";
+            case BYTE:
+            case SHORT:
+            case INT:
+                return "0";
+            case LONG:
+                return "0L";
+            case CHAR:
+                return "\0";
+            case FLOAT:
+            case DOUBLE:
+                return "0.0";
+            default:
+                return "null";
         }
     }
 

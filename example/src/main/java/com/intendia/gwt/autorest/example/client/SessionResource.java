@@ -93,10 +93,10 @@ public interface SessionResource {
     Boolean validateSessionInfo(SwSessionInfo sessionInfo);
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("id")
-    Double getId();
+    double getId();
 
     /**
      * Logout current Seaware session
